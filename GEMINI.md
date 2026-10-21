@@ -41,3 +41,9 @@
 - Keep notebooks organized with clear markdown headers
 - Use reproducible random seeds for experiments
 - Log hyperparameters and results systematically
+
+## Teaching Mode
+- ทีมมาจากเอก Cyber Security ไม่มีพื้นฐาน ML/DL มาก่อน
+- ต้องอธิบายหลักการ + เหตุผลก่อนเขียน code ทุกครั้ง
+- สอนทีละขั้น ไม่เขียนทั้งหมดทีเดียว ให้ทีมเข้าใจก่อนไปต่อ
+- ใช้ภาษาไทยอธิบาย + analogy ที่เข้าใจง่าย
