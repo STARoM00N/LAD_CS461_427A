@@ -6,6 +6,10 @@ data/processed/
 checkpoints/*.pt
 checkpoints/*.pth
 checkpoints/*.pkl
+checkpoints/*.bin
+
+# Downloaded archives
+*.zip
 
 # Python
 __pycache__/

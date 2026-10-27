@@ -1,0 +1,14 @@
+{
+    "model": "logistic_regression",
+    "dataset": "HDFS",
+    "f1_score": 0.9802,
+    "precision": 0.9612,
+    "recall": 1.0,
+    "pr_auc": 0.9753,
+    "hyperparameters": {
+        "class_weight": "balanced",
+        "max_iter": 1000,
+        "random_state": 42
+    },
+    "timestamp": "2026-10-27T12:26:34"
+}
