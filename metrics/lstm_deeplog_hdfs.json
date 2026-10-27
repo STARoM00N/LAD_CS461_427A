@@ -1,0 +1,29 @@
+{
+  "model": "SupervisedSessionLSTM",
+  "dataset": "HDFS",
+  "train_sessions": 402542,
+  "normal_train_sessions": 390755,
+  "anomaly_train_sessions": 11787,
+  "val_sessions": 86259,
+  "test_sessions": 86260,
+  "vocabulary_size": 47,
+  "threshold": 0.95,
+  "class_weight_anomaly": 33.1514,
+  "precision": 0.9764,
+  "recall": 0.998,
+  "f1_score": 0.9871,
+  "pr_auc": 0.9996,
+  "confusion_matrix": [
+    [
+      83673,
+      61
+    ],
+    [
+      5,
+      2521
+    ]
+  ],
+  "device": "cuda",
+  "seed": 42,
+  "notes": "Supervised session-level LSTM trained with labeled HDFS sequences and class-weighted BCEWithLogitsLoss; threshold selected on validation F1."
+}
