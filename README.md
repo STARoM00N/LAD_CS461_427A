@@ -23,19 +23,19 @@ LogSentinel ใช้ Deep Learning ตรวจจับ session ที่ผ�
 ## Project Structure
 
 ```
-LogSentinel/
-├── data/               # Datasets (HDFS, BGL) — not committed
+LAD_CS461_427A/
+├── data/               # Datasets (HDFS, BGL) — not committed, see data/README.md
 ├── notebooks/          # Jupyter Notebooks (EDA → Training → Comparison)
-├── src/                # Reusable Python source code
+├── src/                # Reusable Python source code (planned)
 │   ├── data/           #   Data loading & preprocessing
 │   ├── models/         #   Model definitions
 │   ├── training/       #   Training & evaluation logic
 │   └── utils/          #   Shared utilities
-├── configs/            # Experiment configurations (YAML)
-├── checkpoints/        # Saved model weights — not committed
-├── results/            # Experiment results & figures
-├── app/                # Streamlit web application
-├── scripts/            # Utility scripts
+├── checkpoints/        # Drain3 state & model weights — not committed
+├── results/            # Experiment results
+│   ├── figures/        #   Plots (EDA, confusion matrices, ...)
+│   └── metrics/        #   Metrics per model (JSON)
+├── app/                # Streamlit web application (planned — Week 7)
 ├── tests/              # Unit tests
 └── docs/               # Documentation & project forms
 ```
@@ -44,28 +44,54 @@ LogSentinel/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-org>/LogSentinel.git
-cd LogSentinel
+git clone https://github.com/STARoM00N/LAD_CS461_427A.git
+cd LAD_CS461_427A
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
+source venv/bin/activate      # Linux/Mac
+# venv\Scripts\Activate.ps1   # Windows PowerShell
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Download datasets
-bash scripts/download_data.sh
 ```
+
+### Download datasets
+Datasets are not in git (too large). Follow the steps in [`data/README.md`](data/README.md) to download **HDFS_v1** from Zenodo and place it in `data/raw/HDFS/`.
+
+> ⚠️ Use the full `HDFS.log` (11.17M lines), **not** `HDFS_2k.log`. The 2k file is a random sample of lines, so sessions are incomplete.
 
 ## Usage
 
 ### Training (via notebooks)
-Open notebooks in order (`01_eda.ipynb` → `06_comparison.ipynb`) in Jupyter or Google Colab.
+Open notebooks in order in Jupyter / VS Code. Each notebook reads the output of the previous one.
 
-### Streamlit App
+| Notebook | Status |
+|----------|--------|
+| `01_eda.ipynb` | ✅ Done |
+| `02_log_parsing.ipynb` | ✅ Done — outputs `data/processed/HDFS/{train,val,test}.csv` and `checkpoints/drain3_hdfs.bin` |
+| `03_baseline_models.ipynb` | ✅ Done — outputs `results/metrics/*.json` |
+| `04_lstm_deeplog.ipynb` | ⏳ Week 4 |
+| `05_transformer.ipynb` | ⏳ Week 5 |
+| `06_comparison.ipynb` | ⏳ Week 6 |
+
+### Streamlit App (planned — Week 7)
 ```bash
 streamlit run app/app.py
+```
+
+## Git Workflow
+
+Don't commit directly to `main`. Create a branch for each piece of work, then open a Pull Request:
+
+```bash
+git checkout main && git pull origin main
+git checkout -b <type>/<short-name>      # e.g. feat/lstm-deeplog, fix/log-parsing
+# ... work, then:
+git add <files>
+git commit -m "Short description"
+git push -u origin <type>/<short-name>
+# open a Pull Request on GitHub → review → merge
 ```
 
 ## Datasets
