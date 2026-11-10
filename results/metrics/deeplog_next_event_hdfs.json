@@ -1,0 +1,31 @@
+{
+    "model": "DeepLog_NextEvent",
+    "dataset": "HDFS",
+    "training_paradigm": "Unsupervised/Semi-supervised (Normal sessions only)",
+    "window_size": 10,
+    "best_k": 5,
+    "f1_score": 0.6869,
+    "precision": 0.8677,
+    "recall": 0.5685,
+    "confusion_matrix": [
+        [
+            83515,
+            219
+        ],
+        [
+            1090,
+            1436
+        ]
+    ],
+    "hyperparameters": {
+        "embedding_dim": 32,
+        "hidden_dim": 64,
+        "num_layers": 2,
+        "dropout": 0.2,
+        "learning_rate": 0.001,
+        "batch_size": 512,
+        "epochs": 5,
+        "train_sessions_used": 25000
+    },
+    "timestamp": "2026-11-02 22:22:58"
+}

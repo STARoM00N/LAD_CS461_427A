@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogSentinel — Progress Presentation | CS461 Deep Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&family=Sarabun:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F1B2D; --navy2: #1A2B44; --blue: #1F3A5F; --line: #2E4566;
+    --paper: #F6F5F0; --paper2: #ECEAE2; --card: #FDFCF9; --border: #DDD9CE;
+    --ink: #14213D; --body: #3D4757; --muted: #6B7280;
+    --amber: #F2A33A; --rust: #A8571A; --orange: #E08A2E;
+    --tint-blue: #DCE5F0; --tint-orange: #F8E3CC;
+    --head: 'Kanit', 'Noto Sans Thai', Tahoma, sans-serif;
+    --text: 'Sarabun', 'Noto Sans Thai', Tahoma, sans-serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0a121f; overflow: hidden; }
+  body { font-family: var(--text); color: var(--ink); }
+
+  /* ---------- stage: fixed 1280x720 canvas scaled to the window ---------- */
+  #stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column; gap: 22px;
+    padding: 52px 72px 64px; background: var(--paper); overflow: hidden;
+    font-size: 20px; line-height: 1.55;
+  }
+  .slide.active { display: flex; }
+  .slide.dark { background: var(--navy); color: var(--paper); }
+  .slide.alt { background: var(--paper2); }
+  .slide.accent { background: var(--amber); color: var(--ink); }
+
+  .footer { position: absolute; left: 72px; right: 72px; bottom: 22px; display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+  .dark .footer { color: #8FA3BF; }
+  .accent .footer { color: var(--ink); }
+
+  /* ---------- type ---------- */
+  .eyebrow { font-size: 15px; font-weight: 700; letter-spacing: 2px; color: var(--rust); text-transform: uppercase; }
+  .dark .eyebrow { color: var(--amber); }
+  .accent .eyebrow { color: var(--ink); }
+  h1 { font-family: var(--head); font-weight: 600; font-size: 84px; line-height: 1.1; }
+  h2 { font-family: var(--head); font-weight: 500; font-size: 38px; line-height: 1.3; }
+  h3 { font-family: var(--head); font-weight: 500; font-size: 23px; line-height: 1.35; margin-bottom: 6px; }
+  .head { display: flex; flex-direction: column; gap: 4px; }
+  p, li { color: var(--body); }
+  .dark p, .dark li { color: #C9D4E3; }
+  .accent p { color: #2A3550; }
+  ul { padding-left: 22px; }
+  li { margin: 3px 0; }
+  li::marker { color: var(--rust); }
+  b { color: var(--ink); }
+  .dark b { color: var(--paper); }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; background: var(--paper2); padding: 1px 6px; border-radius: 4px; color: var(--ink); }
+  .dark code { background: var(--navy2); color: var(--amber); }
+  .small { font-size: 16px; }
+
+  /* ---------- layout helpers ---------- */
+  .row { display: flex; gap: 22px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  .grow { flex: 1; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px 26px; }
+  .card.blue { background: var(--blue); border-color: var(--blue); }
+  .card.blue h3, .card.blue b { color: var(--paper); }
+  .card.blue p, .card.blue li { color: #D5DEEA; }
+  .card.navy { background: var(--navy2); border-color: var(--line); }
+  .card.warn { background: var(--tint-orange); border-color: #EBC9A3; }
+  .card.warn p, .card.warn li { color: var(--ink); }
+  .tag { display: inline-block; font-size: 14px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--tint-blue); color: var(--blue); }
+  .tag.o { background: var(--tint-orange); color: var(--rust); }
+  .num { font-family: var(--head); font-weight: 600; line-height: 1.05; }
+  .callout { display: flex; gap: 18px; align-items: center; border-radius: 16px; padding: 18px 24px; background: var(--navy2); }
+  .callout .ico { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--amber); color: var(--navy); display: grid; place-items: center; font-family: var(--head); font-weight: 600; font-size: 24px; }
+  .light-callout { background: var(--card); border: 1px solid var(--border); }
+  .light-callout .ico { background: var(--rust); color: var(--paper); }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 17px; }
+  th { text-align: left; font-weight: 700; color: var(--ink); border-bottom: 2px solid var(--ink); padding: 8px 10px; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--body); }
+  td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.hl td { background: #E9EEF5; }
+  tr.total td { background: var(--paper2); font-weight: 700; color: var(--ink); }
+
+  table.fn { font-size: 15.5px; }
+  table.fn th { font-size: 15.5px; padding: 6px 10px; }
+  table.fn td { vertical-align: top; padding: 7px 10px; line-height: 1.45; }
+  table.fn td:first-child { width: 30%; }
+  table.fn td:nth-child(2) { width: 30%; }
+  table.fn code { font-size: 13.5px; white-space: normal; word-break: break-word; }
+  /* ---------- pipeline ---------- */
+  .flow { display: flex; align-items: stretch; gap: 10px; }
+  .flow .step { flex: 1; background: var(--card); border: 1px solid #D3CFC3; border-radius: 14px; padding: 16px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .flow .step .n { font-family: var(--head); color: var(--rust); font-weight: 600; font-size: 18px; }
+  .flow .step h3 { font-size: 20px; margin: 0; }
+  .flow .step p { font-size: 15.5px; line-height: 1.45; }
+  .flow .step.end { background: var(--blue); border-color: var(--blue); }
+  .flow .step.end h3 { color: var(--paper); } .flow .step.end p { color: #D5DEEA; } .flow .step.end .n { color: var(--amber); }
+  .flow .arrow { align-self: center; color: var(--rust); font-size: 26px; font-weight: 700; }
+  .codebox { background: var(--navy); border-radius: 14px; padding: 18px 24px; font-family: var(--mono); font-size: 16px; line-height: 1.7; color: #8FA3BF; }
+  .codebox .hl { color: var(--amber); }
+
+  /* ---------- confusion matrix ---------- */
+  .cm { display: grid; grid-template-columns: 130px 1fr 1fr; gap: 8px; font-size: 15px; }
+  .cm .lab { color: var(--body); display: flex; align-items: center; justify-content: center; text-align: center; }
+  .cm .cell { border-radius: 12px; padding: 12px; text-align: center; }
+  .cm .cell .num { font-size: 30px; color: var(--ink); }
+  .cm .ok { background: var(--tint-blue); } .cm .bad { background: var(--tint-orange); }
+  .cm .cell p { font-size: 14px; color: var(--body); }
+
+  /* ---------- bar chart ---------- */
+  .bars { display: flex; flex-direction: column; gap: 14px; }
+  .bar-row { display: grid; grid-template-columns: 230px 1fr 90px; align-items: center; gap: 16px; }
+  .bar-row .name { font-weight: 700; color: var(--ink); font-size: 18px; line-height: 1.2; }
+  .bar-row .name span { display: block; font-weight: 400; font-size: 14px; color: var(--muted); }
+  .track { position: relative; height: 34px; background: #E4E1D7; border-radius: 6px; }
+  .fill { height: 100%; border-radius: 6px; }
+  .fill.sup { background: var(--blue); } .fill.uns { background: var(--orange); }
+  .target { position: absolute; left: 80%; top: -6px; bottom: -6px; width: 3px; background: var(--ink); }
+  .bar-row .val { font-family: var(--head); font-weight: 500; font-size: 22px; text-align: right; }
+  .legend { display: flex; gap: 28px; font-size: 15px; color: var(--body); align-items: center; }
+  .sw { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+
+  /* ---------- agenda / timeline ---------- */
+  .agenda { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; counter-reset: a; }
+  .agenda div { display: flex; gap: 16px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .agenda .k { font-family: var(--head); font-weight: 600; font-size: 26px; color: var(--rust); width: 34px; flex: none; }
+  .agenda .t { font-size: 19px; color: var(--ink); font-weight: 600; }
+  .agenda .t span { display: block; font-weight: 400; font-size: 15px; color: var(--muted); }
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+  .steps .s { display: flex; gap: 18px; align-items: flex-start; }
+  .steps .k { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: var(--paper); font-family: var(--head); font-weight: 600; display: grid; place-items: center; font-size: 19px; }
+  .steps .s.now .k { background: var(--rust); }
+  .steps h3 { margin: 0; font-size: 21px; }
+  .steps p { font-size: 17px; }
+
+  /* ---------- nav ---------- */
+  #progress { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--amber); transition: width .25s; z-index: 5; }
+  .roomy { font-size: 23px; gap: 26px; }
+  .roomy .small, .roomy ul.small li { font-size: 19.5px; }
+  .roomy h3 { font-size: 26px; }
+  .roomy .card { padding: 26px 30px; }
+  .roomy .steps p { font-size: 20px; } .roomy .steps h3 { font-size: 24px; } .roomy .steps { gap: 18px; }
+  .roomy .codebox { font-size: 18px; }
+  #hint { transition: opacity .6s; position: fixed; right: 14px; top: 10px; font: 12px var(--text); color: #6c7d96; z-index: 5; }
+
+  /* ---------- print: one slide per page (Ctrl+P → Save as PDF) ---------- */
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { overflow: visible; background: none; height: auto; }
+    #stage { position: static; transform: none !important; width: 1280px; height: auto; }
+    .slide { position: relative; display: flex !important; width: 1280px; height: 720px; page-break-after: always; break-after: page; }
+    #progress, #hint { display: none; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- 1 ─ Cover -->
+<section class="slide dark" style="justify-content:space-between">
+  <p class="eyebrow">CS461 Deep Learning · Final Project Progress Update</p>
+  <div class="row" style="align-items:center;gap:48px">
+    <div class="col grow" style="gap:16px">
+      <h1>LogSentinel</h1>
+      <p style="font-size:25px;line-height:1.5">ระบบตรวจจับความผิดปกติใน System Log ด้วย Deep Learning<br>สำหรับศูนย์ปฏิบัติการความปลอดภัยไซเบอร์ (SOC)</p>
+      <p class="small" style="color:#8FA3BF">Deep Learning-based Log Anomaly Detection for Security Operations Centers</p>
+    </div>
+    <div class="card navy" style="width:300px;flex:none">
+      <p class="small">F1-Score ดีที่สุดตอนนี้</p>
+      <p class="num" style="font-size:62px;color:var(--amber)">98.71%</p>
+      <p class="small">Supervised LSTM · เป้าหมาย ≥ 80%</p>
+    </div>
+  </div>
+  <div class="row" style="border-top:1px solid var(--line);padding-top:20px;gap:28px">
+    <div class="grow"><p style="color:var(--paper)">ธนกร จำนงประโคน</p><p class="small" style="color:#8FA3BF">1660701168</p></div>
+    <div class="grow"><p style="color:var(--paper)">ศิวกร สุภาวงค์</p><p class="small" style="color:#8FA3BF">1660700251</p></div>
+    <div class="grow"><p style="color:var(--paper)">นิธิสิทธิ์ เสนาหาญ</p><p class="small" style="color:#8FA3BF">1660701317</p></div>
+    <div class="grow"><p style="color:var(--paper)">ภูวดล ผิวบางกูล</p><p class="small" style="color:#8FA3BF">1660702067</p></div>
+  </div>
+</section>
+
+<!-- 2 ─ Agenda -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">สารบัญ</p><h2>หัวข้อการนำเสนอ</h2></div>
+  <div class="agenda">
+    <div><span class="k">1</span><span class="t">ที่มาและความสำคัญ<span>Problem Statement & SOC Challenges</span></span></div>
+    <div><span class="k">6</span><span class="t">Supervised LSTM<span>Session-level Sequence Classifier</span></span></div>
+    <div><span class="k">2</span><span class="t">ภาพรวมระบบ<span>System Architecture Pipeline</span></span></div>
+    <div><span class="k">7</span><span class="t">DeepLog<span>Next-Event Prediction, Normal-only</span></span></div>
+    <div><span class="k">3</span><span class="t">การสำรวจข้อมูล<span>EDA & Accuracy Paradox</span></span></div>
+    <div><span class="k">8</span><span class="t">สรุปผลและเปรียบเทียบทุกโมเดล<span>Comparative Evaluation</span></span></div>
+    <div><span class="k">4</span><span class="t">การแปลงและจัดกลุ่ม Log<span>Drain3, Sessionization & Stratified Split</span></span></div>
+    <div><span class="k">9</span><span class="t">งานถัดไป<span>Transformer, BGL & Prototype</span></span></div>
+    <div><span class="k">5</span><span class="t">โมเดลพื้นฐาน<span>Logistic Regression & Isolation Forest</span></span></div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 3 ─ Problem -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">1 · ที่มาและความสำคัญ</p><h2>ปัญหาจริงของศูนย์ SOC</h2></div>
+  <div class="grid3">
+    <div class="card">
+      <span class="tag">ปริมาณ</span>
+      <h3 style="margin-top:10px">Log มหาศาล</h3>
+      <p>ชุดข้อมูล HDFS ชุดเดียวมี Log <b>11,175,629 บรรทัด</b> เกินกว่าที่นักวิเคราะห์จะอ่านด้วยมือ</p>
+    </div>
+    <div class="card">
+      <span class="tag">สัดส่วน</span>
+      <h3 style="margin-top:10px">ความผิดปกติมีน้อยมาก</h3>
+      <p>เพียง <b>~2.9%</b> ของ Session ถูกกลบอยู่ในกิจกรรมปกติของระบบ</p>
+    </div>
+    <div class="card">
+      <span class="tag o">ข้อจำกัด</span>
+      <h3 style="margin-top:10px">Rule-based ตามไม่ทัน</h3>
+      <p>เหมือน Signature ของ Snort/YARA: ต้องเขียนกฎเอง จับได้เฉพาะที่รู้จัก และทำให้เกิด <b>Alert Fatigue</b></p>
+    </div>
+  </div>
+  <div class="card blue">
+    <h3>🎯 เป้าหมายของโครงงาน</h3>
+    <ul>
+      <li>พัฒนาระบบที่ <b>เรียนรู้รูปแบบพฤติกรรมของ Log ได้เอง</b></li>
+      <li>จำแนกความผิดปกติระดับ Session ด้วย <b>F1-Score ≥ 80%</b> บนชุดข้อมูล HDFS</li>
+      <li>สร้าง Web Application Prototype สำหรับทีม SOC</li>
+    </ul>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 4 ─ Pipeline -->
+<section class="slide alt">
+  <div class="head"><p class="eyebrow">2 · ภาพรวมระบบ</p><h2>Pipeline: จาก Log ดิบสู่การแจ้งเตือน</h2></div>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><h3>Raw Logs</h3><p>HDFS.log 11.17 ล้านบรรทัด</p></div>
+    <span class="arrow">›</span>
+    <div class="step"><span class="n">2</span><h3>Log Parsing</h3><p>Drain3 + Masking &lt;BLK&gt; &lt;IP&gt; &lt;NUM&gt;</p></div>
+    <span class="arrow">›</span>
+    <div class="step"><span class="n">3</span><h3>Sessionizing</h3><p>รวมเหตุการณ์ตาม block_id</p></div>
+    <span class="arrow">›</span>
+    <div class="step"><span class="n">4</span><h3>Stratified Split</h3><p>70 / 15 / 15 ระดับ Session</p></div>
+    <span class="arrow">›</span>
+    <div class="step"><span class="n">5</span><h3>Modeling</h3><p>Event Count vs LSTM / DeepLog</p></div>
+    <span class="arrow">›</span>
+    <div class="step end"><span class="n">6</span><h3>SOC Metrics</h3><p>F1, Recall, Precision, PR-AUC</p></div>
+  </div>
+  <div class="codebox">
+    <div>Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010</div>
+    <div class="hl">→ E1 = Receiving block &lt;BLK&gt; src: /&lt;IP&gt; dest: /&lt;IP&gt;</div>
+    <div>blk_-1608999687919862906 = [E1, E2, E1, E1, E3, E3, E4, E4, E3, E4, …] (269 events) → โมเดล → Normal / Anomaly</div>
+  </div>
+  <div class="callout light-callout">
+    <span class="ico">!</span>
+    <p><b>หลักคิดสำคัญ:</b> เปลี่ยนข้อความ Log ที่คอมพิวเตอร์ไม่เข้าใจ ให้เป็น <b>ลำดับเหตุการณ์เชิงตัวเลข (Sequence of Event IDs)</b> ที่ป้อนให้โมเดลได้</p>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 5 ─ EDA -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">3 · การสำรวจข้อมูล (EDA)</p><h2>สิ่งที่พบจาก HDFS_v1 (11,175,629 บรรทัด)</h2></div>
+  <div class="row">
+    <div class="col grow">
+      <div class="card">
+        <h3>โครงสร้าง Log</h3>
+        <p><code>&lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</code></p>
+      </div>
+      <div class="card">
+        <h3>Log Level Distribution</h3>
+        <ul><li><code>INFO</code> 10,812,836 บรรทัด (<b>96.75%</b>)</li><li><code>WARN</code> 362,793 บรรทัด (<b>3.25%</b>)</li><li>ไม่มีบรรทัดระดับ <code>ERROR</code> เลย</li></ul>
+        <p class="small" style="margin-top:6px">💡 Rule ที่ดักแค่คำว่า <code>ERROR</code> จะจับอะไรไม่ได้เลยในชุดข้อมูลนี้</p>
+      </div>
+    </div>
+    <div class="col" style="width:470px">
+      <div class="card">
+        <h3>สัดส่วนคลาส (Class Imbalance)</h3>
+        <div class="row" style="gap:28px;margin-top:6px">
+          <div><p class="num" style="font-size:44px;color:var(--blue)">97.07%</p><p class="small">Normal · 558,223</p></div>
+          <div><p class="num" style="font-size:44px;color:var(--rust)">2.93%</p><p class="small">Anomaly · 16,838</p></div>
+        </div>
+        <p class="small" style="margin-top:6px">รวม 575,061 Sessions · ความยาว 2–310 บรรทัด (median 22)</p>
+      </div>
+      <div class="card blue">
+        <h3>EDA บอกอะไรกับการออกแบบ</h3>
+        <ul class="small"><li>ข้อมูลไม่สมดุล → <b>Class Weighting</b> + <b>Stratified Split</b></li><li>Session ยาวไม่เท่ากัน (2–310) → <b>Padding / Packing</b></li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 6 ─ Accuracy paradox -->
+<section class="slide dark">
+  <div class="head"><p class="eyebrow">3 · Accuracy Paradox</p><h2>ทำไมเราไม่ใช้ Accuracy ตัดสินโมเดล</h2></div>
+  <div class="row" style="align-items:stretch">
+    <div class="card navy" style="width:420px;flex:none">
+      <p class="small">โมเดลที่ทายว่า “Normal” ทุกกรณี</p>
+      <p class="num" style="font-size:64px;color:var(--paper)">97.07%</p>
+      <p>Accuracy ดูสูง แต่…</p>
+      <p class="num" style="font-size:40px;color:var(--amber);margin-top:10px">Recall = 0%</p>
+      <p class="small">ความผิดปกติ 16,838 ครั้งหลุดรอดทั้งหมด เหมือน IDS ที่ไม่เคยแจ้งเตือน</p>
+    </div>
+    <div class="col grow">
+      <h3 style="color:var(--paper)">เกณฑ์ที่ใช้ (ตามที่เรียนเรื่อง Evaluation Metrics)</h3>
+      <div class="card navy"><p><b>Recall = TP / (TP + FN)</b> — เกิดเหตุจริง 100 ครั้ง จับได้กี่ครั้ง (กันการหลุดรอด)</p></div>
+      <div class="card navy"><p><b>Precision = TP / (TP + FP)</b> — เตือน 100 ครั้ง เป็นเหตุจริงกี่ครั้ง (ลด Alert Fatigue)</p></div>
+      <div class="card navy"><p><b>F1-Score</b> (ตัวชี้วัดหลัก) — Harmonic Mean ของ Precision และ Recall</p></div>
+      <div class="card navy"><p><b>PR-AUC</b> — วัดทุก Threshold เหมาะกับข้อมูลไม่สมดุลกว่า ROC-AUC เพราะไม่ถูก True Negative จำนวนมหาศาลดันให้ดูดี</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 7 ─ Drain3 -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">4 · Log Parsing</p><h2>แปลง Log เป็น Template ด้วย Drain3</h2></div>
+  <div class="row">
+    <div class="col grow">
+      <div class="card">
+        <h3>❓ ทำไมต้อง Parse</h3>
+        <p>Log มีค่าตัวแปรเปลี่ยนตลอด (IP, Port, Block ID) ถ้าไม่สกัดออก โมเดลจะเจอ “คำใหม่” เป็นล้านคำ (Vocabulary ไม่จำกัด)</p>
+        <p class="small" style="margin-top:6px">เทียบกับ SIEM: คือขั้น <b>Normalization</b> ก่อนเขียน Correlation Rule</p>
+      </div>
+      <div class="card">
+        <h3>🛠️ Drain3 (Fixed-depth Tree Parser)</h3>
+        <ul class="small">
+          <li>จัดกลุ่มประโยคตามความยาวและ Token แรก ๆ แล้ววัดความเหมือนกับ Template เดิม</li>
+          <li><b>เหตุผลที่เลือก:</b> ทำงานแบบ Online ทีละบรรทัด และบันทึก State (<code>drain3_hdfs.bin</code>) ไว้ให้ Web App parse log ใหม่ด้วย Template ชุดเดิม</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col" style="width:470px">
+      <div class="card">
+        <h3>Regex Masking ก่อน Parse</h3>
+        <table class="small">
+          <tr><td><code>blk_-?\d+</code></td><td style="white-space:nowrap;width:110px">→ <code>&lt;BLK&gt;</code></td></tr>
+          <tr><td><code>(\d{1,3}\.){3}\d{1,3}(:\d+)?</code></td><td style="white-space:nowrap;width:110px">→ <code>&lt;IP&gt;</code></td></tr>
+          <tr><td><code>\b\d+\b</code></td><td style="white-space:nowrap;width:110px">→ <code>&lt;NUM&gt;</code></td></tr>
+        </table>
+      </div>
+      <div class="card blue">
+        <div class="row" style="gap:30px">
+          <div><p class="num" style="font-size:52px;color:var(--amber)">45</p><p class="small">Event Templates (Loghub มี 29)</p></div>
+          <div><p class="num" style="font-size:52px;color:var(--amber)">100%</p><p class="small">ความยาว Session ตรงกับ Event_traces ของ Loghub</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 8 ─ Session & split -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">4 · Sessionization & Data Split</p><h2>รวมกลุ่มตาม block_id และแบ่งข้อมูลอย่างปลอดภัย</h2></div>
+  <div class="row">
+    <div class="col grow">
+      <div class="card">
+        <h3>1. รวมกลุ่มตาม Session (block_id)</h3>
+        <ul class="small">
+          <li>ในระบบกระจาย เหตุการณ์ของบล็อกเดียวกันกระจายสลับกับบล็อกอื่น</li>
+          <li>Parse ได้ 575,061 Sessions ครบทุก block_id (parse ไม่ได้ 0 บรรทัด)</li>
+          <li>Label อยู่ระดับ block_id (<code>anomaly_label.csv</code>) จึงเป็นหน่วยที่จำแนกได้ตรงที่สุด</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>2. Stratified Session-Level Split</h3>
+        <ul class="small">
+          <li><b>ไม่ตัดกลาง Session</b> → ป้องกัน Data Leakage (โมเดลเห็นข้อสอบตอนเรียน)</li>
+          <li><b>Stratified</b> → คงสัดส่วน Anomaly 2.93% ในทุกชุด</li>
+          <li><b>Validation Set</b> ใช้เลือก Hyperparameter / Threshold ส่วน Test ใช้วัดผลครั้งสุดท้ายเท่านั้น</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col" style="width:440px;justify-content:center">
+      <table>
+        <tr><th>ชุดข้อมูล</th><th class="r">Sessions</th><th class="r">Anomaly</th></tr>
+        <tr><td>Train (70%)</td><td class="r">402,542</td><td class="r">11,787</td></tr>
+        <tr><td>Validation (15%)</td><td class="r">86,259</td><td class="r">2,525</td></tr>
+        <tr><td>Test (15%)</td><td class="r">86,260</td><td class="r">2,526</td></tr>
+        <tr class="total"><td>รวม</td><td class="r">575,061</td><td class="r">16,838</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- FN parsing & split -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">4 · ฟังก์ชันที่ใช้</p><h2>Log Parsing & การแบ่งข้อมูล: ฟังก์ชันและเหตุผล</h2></div>
+  <table class="fn">
+    <tr><th>ฟังก์ชัน / วิธีการ</th><th>ใช้ทำอะไร</th><th>ทำไมเลือกใช้</th></tr>
+    <tr><td><code>TemplateMiner</code> (Drain3)</td><td>แปลงข้อความแต่ละบรรทัดเป็น Template / Event ID โดยอ่านไฟล์ทีละบรรทัด</td><td>Parse แบบ Online ได้ จึงใช้ทั้งกับไฟล์ 11 ล้านบรรทัดและกับ Log ใหม่ใน Web App</td></tr>
+    <tr><td><code>MaskingInstruction</code> × 3</td><td>แทน block id, IP, ตัวเลข ด้วย <code>&lt;BLK&gt;</code> <code>&lt;IP&gt;</code> <code>&lt;NUM&gt;</code> ก่อน Parse</td><td>ค่าที่เปลี่ยนทุกบรรทัดจะทำให้ข้อความแบบเดียวกันถูกแยกเป็นหลาย Template</td></tr>
+    <tr><td><code>FilePersistence(drain3_hdfs.bin)</code></td><td>บันทึก State ของ Drain3</td><td>ให้ Web App ใช้ Template ชุดเดิม Event ID จึงตรงกับที่โมเดลเรียนมา</td></tr>
+    <tr><td><code>re.compile(r'blk_-?\d+')</code></td><td>ดึง block_id จากแต่ละบรรทัด</td><td>ใช้ block_id เป็น Key รวม Event เป็น Session เพราะ Label อยู่ระดับ block</td></tr>
+    <tr><td><code>pd.merge(on='BlockId', how='inner')</code></td><td>ผูก Label (Normal = 0, Anomaly = 1) เข้ากับ Session</td><td>เก็บเฉพาะ Session ที่มีทั้งลำดับ Event และ Label</td></tr>
+    <tr><td><code>train_test_split(test_size=0.30, stratify=Label, random_state=42)</code> แล้วแบ่งซ้ำ 0.50</td><td>แบ่ง Train / Val / Test = 70 / 15 / 15</td><td><code>stratify</code> คงสัดส่วน Anomaly 2.93% ทุกชุด · <code>random_state</code> ทำให้ผลซ้ำได้</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ฟังก์ชันและค่าที่ตั้งจากโค้ดจริงใน notebooks/02_log_parsing.ipynb</span><span class="pg"></span></div>
+</section>
+
+<!-- 9 ─ Baseline -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">5 · โมเดลพื้นฐาน (Baseline)</p><h2>Event Count Vector + Logistic Regression / Isolation Forest</h2></div>
+  <p>🎯 <b>ทำไมต้องมี Baseline:</b> เป็นเกณฑ์วัด (Benchmark) พิสูจน์ว่าโมเดล Deep Learning ที่ซับซ้อนกว่าคุ้มค่าจริง</p>
+  <div class="grid3">
+    <div class="card"><h3>Event Count Vector</h3><p class="small"><code>CountVectorizer</code> นับความถี่ E1…E45 ต่อ Session ได้เวกเตอร์ขนาดคงที่ (แนวคิดเดียวกับ Bag-of-Words)</p></div>
+    <div class="card"><h3>Logistic Regression</h3><p class="small">Linear Classifier + Sigmoid · <code>class_weight='balanced'</code> เพิ่มน้ำหนัก Loss ของคลาส Anomaly ที่มีน้อย</p></div>
+    <div class="card"><h3>Isolation Forest</h3><p class="small">สุ่มแบ่งข้อมูลด้วยต้นไม้ จุดที่ถูกแยกออกเร็ว (Path สั้น) คือจุดผิดปกติ · <code>contamination=0.0293</code></p></div>
+  </div>
+  <table>
+    <tr><th>โมเดล</th><th>การเรียนรู้</th><th class="r">Precision</th><th class="r">Recall</th><th class="r">F1-Score</th><th class="r">PR-AUC</th></tr>
+    <tr class="hl"><td><b>Logistic Regression</b></td><td>Supervised</td><td class="r">96.12%</td><td class="r">100.00%</td><td class="r"><b>98.02%</b></td><td class="r">97.53%</td></tr>
+    <tr><td><b>Isolation Forest</b></td><td>Unsupervised</td><td class="r">64.74%</td><td class="r">62.67%</td><td class="r"><b>63.69%</b></td><td class="r">73.36%</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ผลบน HDFS Test Set (86,260 sessions)</span><span class="pg"></span></div>
+</section>
+
+<!-- FN baseline -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">5 · ฟังก์ชันที่ใช้</p><h2>Baseline: ฟังก์ชันและเหตุผล</h2></div>
+  <table class="fn">
+    <tr><th>ฟังก์ชัน / วิธีการ</th><th>ใช้ทำอะไร</th><th>ทำไมเลือกใช้</th></tr>
+    <tr><td><code>CountVectorizer(token_pattern=r'\b\w+\b')</code></td><td>แปลง Sequence เป็นตารางนับจำนวน Event ขนาด (Sessions × 45)</td><td>Session ยาวไม่เท่ากัน ต้องแปลงเป็นเวกเตอร์ขนาดคงที่ก่อนป้อนโมเดล ML</td></tr>
+    <tr><td><code>LogisticRegression(class_weight='balanced', max_iter=1000)</code></td><td>Supervised Classifier</td><td><code>balanced</code> ถ่วงน้ำหนัก Loss ตามสัดส่วนคลาสให้อัตโนมัติ · <code>max_iter</code> ให้รอบพอสำหรับลู่เข้า · เป็นโมเดลเส้นตรงที่ง่าย เหมาะเป็นเกณฑ์อ้างอิง</td></tr>
+    <tr><td><code>IsolationForest(n_estimators=100, contamination=0.0293)</code> · <code>fit(X_train)</code></td><td>Unsupervised: ไม่ส่ง Label ตอน fit</td><td>ทดสอบว่าไม่ใช้ Label ได้ผลแค่ไหน · <code>contamination</code> ตั้งตามสัดส่วน Anomaly จริง</td></tr>
+    <tr><td><code>predict() == -1 → 1</code></td><td>แปลง Output ของ Isolation Forest (−1 / 1) เป็น 1 / 0</td><td>ให้ตรงกับรูปแบบ Label ของโปรเจกต์</td></tr>
+    <tr><td><code>-score_samples()</code> · <code>predict_proba()[:, 1]</code></td><td>ได้ Anomaly Score แบบต่อเนื่อง</td><td>PR-AUC ต้องใช้ Score ไม่ใช่แค่ 0/1 · กลับเครื่องหมายให้ค่ามาก = แปลก</td></tr>
+    <tr><td><code>f1_score</code> · <code>precision_score</code> · <code>recall_score</code> · <code>average_precision_score</code> · <code>confusion_matrix</code></td><td>วัดผลบน Test Set</td><td><code>average_precision_score</code> = PR-AUC เหมาะกับข้อมูลไม่สมดุล · ไม่ใช้ Accuracy</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ฟังก์ชันและค่าที่ตั้งจากโค้ดจริงใน notebooks/03_baseline_models.ipynb</span><span class="pg"></span></div>
+</section>
+
+<!-- 10 ─ Baseline limitations -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">5 · ข้อจำกัดของ Baseline</p><h2>LR ได้ 98% แล้ว ทำไมยังต้องไปต่อ</h2></div>
+  <div class="row">
+    <div class="card grow">
+      <h3>มองไม่เห็นลำดับ (Blind to Order)</h3>
+      <p class="small">Event Count Vector รู้แค่ว่ามี Event อะไร กี่ครั้ง แต่ไม่รู้ว่าอะไรเกิดก่อน-หลัง</p>
+      <div class="col" style="gap:8px;margin-top:12px">
+        <p><span class="tag">ปกติ</span>&nbsp; เสียบบัตร ATM → ใส่รหัส → ถอนเงิน</p>
+        <p><span class="tag o">ผิดปกติ</span>&nbsp; ถอนเงิน → เสียบบัตร ATM → ใส่รหัส</p>
+      </div>
+      <p class="small" style="margin-top:12px">ทั้งสองมีจำนวน Event เท่ากัน → Baseline มองว่าเหมือนกัน</p>
+    </div>
+    <div class="col" style="width:470px">
+      <div class="card"><h3>ต้องพึ่ง Label ครบ</h3><p class="small">LR เรียนจากตัวอย่าง Anomaly ที่มีเฉลย คล้าย Signature-based ที่รู้จักเฉพาะสิ่งที่เคยเห็น</p></div>
+      <div class="card"><h3>ไม่ใช้ Label ก็ยังไม่ถึงเป้า</h3><p class="small">Isolation Forest ได้ F1 เพียง 63.69%</p></div>
+    </div>
+  </div>
+  <div class="callout light-callout"><span class="ico">→</span><p>จึงต้องใช้ <b>โมเดลลำดับ (RNN / LSTM, Transformer)</b> ที่เข้าใจบริบทตามเวลา</p></div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 12 ─ LSTM results -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">6 · Supervised LSTM</p><h2>การฝึกและผลลัพธ์: F1 98.71% ดีที่สุดจนถึงตอนนี้</h2></div>
+  <div class="row">
+    <div class="col grow">
+      <div class="card">
+        <h3>🛠️ เทคนิคการฝึก</h3>
+        <ul class="small">
+          <li><b><code>BCEWithLogitsLoss(pos_weight=33.15)</code></b> — Binary Cross-Entropy; pos_weight = Normal ÷ Anomaly ใน Train ให้การพลาด Anomaly 1 ครั้ง “เจ็บ” เท่ากับพลาด Normal ~33 ครั้ง</li>
+          <li><b>Adam</b> (lr 0.001) · Batch 256 · 10 Epochs</li>
+          <li><b>Threshold Tuning บน Validation:</b> ไม่ใช้ 0.5 ตายตัว ไล่หาค่าที่ F1 สูงสุดได้ <b>0.95</b> แล้วจึงใช้กับ Test</li>
+        </ul>
+      </div>
+      <div class="row" style="gap:28px">
+        <div><p class="small">Precision</p><p class="num" style="font-size:32px">97.64%</p></div>
+        <div><p class="small">Recall</p><p class="num" style="font-size:32px">99.80%</p></div>
+        <div><p class="small">PR-AUC</p><p class="num" style="font-size:32px">99.96%</p></div>
+        <div><p class="small">False Alarm เทียบ LR</p><p class="num" style="font-size:32px;color:var(--blue)">102 → 61</p></div>
+      </div>
+    </div>
+    <div class="col" style="width:440px">
+      <h3>Confusion Matrix (Test Set)</h3>
+      <div class="cm">
+        <span></span><span class="lab">ทำนาย Normal</span><span class="lab">ทำนาย Anomaly</span>
+        <span class="lab">จริง Normal</span>
+        <div class="cell ok"><p class="num">83,673</p><p>ปกติ ถูกต้อง</p></div>
+        <div class="cell bad"><p class="num">61</p><p>แจ้งเตือนผิด</p></div>
+        <span class="lab">จริง Anomaly</span>
+        <div class="cell bad"><p class="num">5</p><p>หลุดรอด</p></div>
+        <div class="cell ok"><p class="num">2,521</p><p>จับได้</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · ผลบน HDFS Test Set (86,260 sessions)</span><span class="pg"></span></div>
+</section>
+
+<!-- FN lstm -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">6 · ฟังก์ชันที่ใช้</p><h2>Supervised LSTM: ฟังก์ชันและเหตุผล</h2></div>
+  <table class="fn">
+    <tr><th>ฟังก์ชัน / วิธีการ</th><th>ใช้ทำอะไร</th><th>ทำไมเลือกใช้</th></tr>
+    <tr><td>Vocabulary <code>&lt;PAD&gt;=0</code>, <code>&lt;UNK&gt;=1</code> + E1…E45 (47 tokens)</td><td>เข้ารหัส Event เป็นตัวเลข</td><td>PAD ใช้เติมความยาว · UNK รองรับ Event ใน Val/Test ที่ไม่เคยเห็นใน Train</td></tr>
+    <tr><td><code>DataLoader(shuffle=True)</code> + <code>pad_sequence</code> (batch 256)</td><td>รวม Session ยาวไม่เท่ากันเป็น Batch</td><td>Shuffle เฉพาะ Train ลดผลจากลำดับข้อมูล · Val/Test ไม่ Shuffle</td></tr>
+    <tr><td><code>nn.Embedding(47, 32, padding_idx=0)</code></td><td>แปลง Event ID เป็นเวกเตอร์ 32 มิติที่เรียนรู้ได้</td><td>แทน One-hot · <code>padding_idx</code> ทำให้ PAD ไม่ถูกอัปเดต</td></tr>
+    <tr><td><code>pack_padded_sequence</code> → <code>nn.LSTM(hidden 64, 2 layers, dropout 0.2)</code> → <code>hidden[-1]</code> → <code>nn.Linear(64, 1)</code></td><td>อ่านลำดับ แล้วใช้ Hidden State สุดท้ายของชั้นบนเป็นตัวแทน Session</td><td>Pack ให้ LSTM หยุดที่ Event จริงตัวสุดท้าย ไม่อ่าน PAD · LSTM เห็นลำดับก่อน-หลังที่ Count Vector มองไม่เห็น</td></tr>
+    <tr><td><code>nn.BCEWithLogitsLoss(pos_weight=33.15)</code></td><td>Loss แบบ 2 คลาส</td><td>รวม Sigmoid + BCE ในฟังก์ชันเดียว คำนวณเสถียรกว่า · <code>pos_weight</code> = Normal ÷ Anomaly ชดเชยคลาสไม่สมดุล</td></tr>
+    <tr><td><code>torch.optim.Adam(lr=0.001)</code> · 10 epochs</td><td>Optimizer</td><td>ปรับขนาดก้าวของแต่ละพารามิเตอร์อัตโนมัติ</td></tr>
+    <tr><td><code>torch.sigmoid</code> + ไล่ Threshold <code>np.linspace(0.01, 0.99, 197)</code> บน Val F1</td><td>เลือกจุดตัด → 0.95</td><td>ไม่ใช้ 0.5 ตายตัว และเลือกบน Validation โดยไม่แตะ Test</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ฟังก์ชันและค่าที่ตั้งจากโค้ดจริงใน notebooks/04_lstm_deeplog.ipynb</span><span class="pg"></span></div>
+</section>
+
+<!-- 13 ─ DeepLog concept -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">7 · DeepLog (Du et al., ACM CCS 2017)</p><h2>เรียนรู้จาก Log ปกติล้วน (Normal Only)</h2></div>
+  <div class="row">
+    <div class="col" style="width:440px">
+      <div class="card"><h3>ปัญหาที่ต้องการแก้</h3><p class="small">ในงานจริง ความผิดปกติใหม่ ๆ <b>ไม่มี Label</b> โมเดลจึงควรเรียนจาก Log ปกติเท่านั้น</p></div>
+      <div class="card blue"><h3>เทียบกับ SOC</h3><p class="small">คล้าย <b>Behavioral Baseline ของ UEBA</b>: เรียนว่า “ปกติ” หน้าตาอย่างไร อะไรที่หลุดจากนั้นคือสิ่งที่ต้องตรวจ</p></div>
+    </div>
+    <div class="card grow">
+      <h3>🛠️ เทคนิคที่ใช้</h3>
+      <ul class="small">
+        <li><b>Sliding Window (h = 10):</b> ตัด Session ปกติเป็นหน้าต่างละ 10 Event ให้ทาย Event ถัดไป (488,673 Windows)</li>
+        <li><b>Next-Event Prediction = Multi-class Classification:</b> LSTM (Embedding 32, Hidden 64, 2 ชั้น) → Linear → <b>Softmax</b> 47 คลาส · <code>CrossEntropyLoss</code></li>
+        <li><b>Top-k Detection:</b> Event จริงไม่อยู่ใน k อันดับที่ทาย → Abnormal Step; Session ที่มี Abnormal Step ≥ 1 → <b>Anomaly</b></li>
+        <li><b>เลือก k บน Validation:</b> ทดลอง k ∈ {1,2,3,5,7,9,12,15} ได้ <b>k = 5</b> (Validation F1 67.12%)</li>
+      </ul>
+    </div>
+  </div>
+  <div class="codebox">Window = [E1, E2, E1, E1, E3, E3, E4, E4, E3, E4] → LSTM → Top-5 &nbsp;·&nbsp; Event จริงถัดไป = E5<br><span class="hl">E5 ∈ Top-5 → ปกติ &nbsp;|&nbsp; E5 ∉ Top-5 → Abnormal Step</span></div>
+  <div class="footer"><span>LogSentinel · Progress Presentation · ตัวอย่าง Window จาก blk_-1608999687919862906</span><span class="pg"></span></div>
+</section>
+
+<!-- 14 ─ DeepLog results -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">7 · DeepLog</p><h2>ผลลัพธ์และข้อจำกัดของการทดลองรอบนี้</h2></div>
+  <div class="row">
+    <div class="col" style="width:470px">
+      <div><p class="small">F1-Score (k = 5)</p><p class="num" style="font-size:72px;color:var(--rust)">68.69%</p></div>
+      <div class="row" style="gap:36px">
+        <div><p class="small">Precision</p><p class="num" style="font-size:32px">86.77%</p></div>
+        <div><p class="small">Recall</p><p class="num" style="font-size:32px">56.85%</p></div>
+      </div>
+      <p>จับได้ <b>1,436 จาก 2,526</b> Anomaly · แจ้งเตือนผิด <b>219</b> ครั้ง</p>
+      <p class="small"><b>Precision สูง</b> (เตือนแล้วมักเป็นเหตุจริง) แต่ <b>Recall ยังต่ำ</b> — ยังต่ำกว่าเป้า 80%</p>
+    </div>
+    <div class="col grow">
+      <div class="card warn">
+        <h3>⚠️ ข้อจำกัด</h3>
+        <ul class="small">
+          <li>ฝึกบน CPU จึงสุ่มใช้ Normal Session เพียง <b>25,000 จาก 390,755</b></li>
+          <li>ฝึกเพียง <b>5 Epochs</b></li>
+          <li>โมเดลอาจยังเห็นรูปแบบปกติไม่ครบ → Top-5 ไม่ครอบคลุม</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🔧 แผนปรับปรุง</h3>
+        <ul class="small">
+          <li>ฝึกด้วย Normal Session ทั้งหมดบน GPU</li>
+          <li>เพิ่ม Epoch · ทดลองขนาด Window / Hidden</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · ผลบน HDFS Test Set (86,260 sessions)</span><span class="pg"></span></div>
+</section>
+
+<!-- FN deeplog -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">7 · ฟังก์ชันที่ใช้</p><h2>DeepLog: ฟังก์ชันและเหตุผล</h2></div>
+  <table class="fn">
+    <tr><th>ฟังก์ชัน / วิธีการ</th><th>ใช้ทำอะไร</th><th>ทำไมเลือกใช้</th></tr>
+    <tr><td><code>train_raw[Label == 0]</code> · <code>.sample(n=25000, random_state=42)</code></td><td>เลือกเฉพาะ Normal Session มาฝึก</td><td>DeepLog เรียนรู้เฉพาะ “ความปกติ” · สุ่มย่อยเพราะรอบนี้รันบน CPU</td></tr>
+    <tr><td><code>extract_sliding_windows(window_size=10)</code> (เติม PAD ข้างหน้า)</td><td>สร้างคู่ 10 Event → Event ถัดไป ได้ 488,673 Windows</td><td>เติม PAD ข้างหน้าทำให้ทายได้ตั้งแต่ Event แรกของ Session</td></tr>
+    <tr><td><code>nn.LSTM</code> → <code>lstm_out[:, -1, :]</code> → <code>nn.Linear(64, 47)</code></td><td>ให้คะแนน (Logits) กับทุก Event ใน Vocabulary</td><td>ใช้สถานะหลังอ่านครบ Window เป็นบริบทในการทาย</td></tr>
+    <tr><td><code>nn.CrossEntropyLoss</code> · Adam lr 0.001 · batch 512 · 5 epochs</td><td>Loss แบบหลายคลาส</td><td>การทาย Event ถัดไปคือเลือก 1 จาก 47 คลาส (มี Softmax ในตัว)</td></tr>
+    <tr><td><code>torch.topk(logits, k)</code> + <code>(topk == target).any()</code></td><td>เช็กว่า Event จริงอยู่ใน k อันดับแรกหรือไม่</td><td>ระบบปกติไปต่อได้หลายทาง จึงยอมรับหลายคำตอบแทนการต้องทายถูกเป๊ะ</td></tr>
+    <tr><td><code>np.bincount</code> + <code>error_threshold=1</code></td><td>นับ Abnormal Step ต่อ Session → ≥ 1 = Anomaly</td><td>ตามกฎตัดสินของ DeepLog</td></tr>
+    <tr><td>ไล่ k ใน <code>[1, 2, 3, 5, 7, 9, 12, 15]</code> บน Val F1</td><td>เลือก k → 5 (Val F1 67.12%)</td><td>k เล็ก = เตือนมาก · k ใหญ่ = เตือนน้อย จึงเลือกจุดสมดุลบน Validation</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ฟังก์ชันและค่าที่ตั้งจากโค้ดจริงใน notebooks/04b_deeplog_next_event.ipynb</span><span class="pg"></span></div>
+</section>
+
+<!-- 15 ─ Comparison -->
+<section class="slide">
+  <div class="head"><p class="eyebrow">8 · สรุปผล</p><h2>F1-Score ของทุกโมเดลเทียบกับเป้า 80%</h2></div>
+  <div class="bars">
+    <div class="bar-row"><div class="name">Supervised LSTM<span>Embedding + LSTM, Weighted BCE</span></div><div class="track"><div class="fill sup" style="width:98.71%"></div><div class="target"></div></div><div class="val">98.71%</div></div>
+    <div class="bar-row"><div class="name">Logistic Regression<span>Event Count + Class Weight</span></div><div class="track"><div class="fill sup" style="width:98.02%"></div><div class="target"></div></div><div class="val">98.02%</div></div>
+    <div class="bar-row"><div class="name">DeepLog<span>Sliding Window + Top-k</span></div><div class="track"><div class="fill uns" style="width:68.69%"></div><div class="target"></div></div><div class="val">68.69%</div></div>
+    <div class="bar-row"><div class="name">Isolation Forest<span>Random Tree Partition</span></div><div class="track"><div class="fill uns" style="width:63.69%"></div><div class="target"></div></div><div class="val">63.69%</div></div>
+  </div>
+  <div class="legend"><span><span class="sw" style="background:var(--blue)"></span>ใช้ Label (Supervised) — ผ่านเป้า</span><span><span class="sw" style="background:var(--orange)"></span>ไม่ใช้ Label ของ Anomaly — ยังไม่ถึงเป้า</span><span><span class="sw" style="background:var(--ink);width:3px"></span>เส้นเป้าหมาย F1 = 80%</span></div>
+  <table>
+    <tr><th>โมเดล</th><th>ข้อมูลที่ใช้ฝึก</th><th class="r">Precision</th><th class="r">Recall</th><th class="r">F1</th><th class="r">PR-AUC</th></tr>
+    <tr><td>Supervised LSTM</td><td>Supervised</td><td class="r">97.64%</td><td class="r">99.80%</td><td class="r"><b>98.71%</b></td><td class="r">99.96%</td></tr>
+    <tr><td>Logistic Regression</td><td>Supervised</td><td class="r">96.12%</td><td class="r">100.00%</td><td class="r"><b>98.02%</b></td><td class="r">97.53%</td></tr>
+    <tr><td>DeepLog</td><td>Normal Only</td><td class="r">86.77%</td><td class="r">56.85%</td><td class="r"><b>68.69%</b></td><td class="r">N/A</td></tr>
+    <tr><td>Isolation Forest</td><td>Unsupervised</td><td class="r">64.74%</td><td class="r">62.67%</td><td class="r"><b>63.69%</b></td><td class="r">73.36%</td></tr>
+  </table>
+  <div class="footer"><span>LogSentinel · ผลบน HDFS Test Set (86,260 sessions)</span><span class="pg"></span></div>
+</section>
+
+<!-- 16 ─ Lessons -->
+<section class="slide accent">
+  <div class="head"><p class="eyebrow">8 · สิ่งที่เราเรียนรู้</p><h2 style="font-size:44px">Supervised ผ่านเป้าแล้ว — โจทย์ต่อไปคือจับสิ่งที่ไม่เคยเห็น</h2></div>
+  <div class="grid2" style="margin-top:8px">
+    <div><h3>ข้อมูลไม่สมดุลต้องจัดการทุกขั้น</h3><p class="small">Stratified Split → Class Weight / pos_weight → Threshold Tuning → วัดด้วย F1 / PR-AUC</p></div>
+    <div><h3>Validation Set สำคัญ</h3><p class="small">ทุกการตัดสินใจ (Threshold 0.95, k = 5) เลือกบน Validation เพื่อให้ผลบน Test เชื่อถือได้</p></div>
+    <div><h3>Supervised ≈ Signature-based</h3><p class="small">แม่นมากกับรูปแบบที่มีตัวอย่าง แต่ต้องพึ่ง Label</p></div>
+    <div><h3>Normal-only ≈ Anomaly-based IDS</h3><p class="small">ไม่ต้องมี Label ของการโจมตี แต่ยากกว่าและยังต้องปรับปรุง</p></div>
+  </div>
+  <p style="font-size:19px;margin-top:4px"><b>บน HDFS โมเดลเรียบง่ายก็ได้ผลสูง</b> — Deep Learning จึงต้องพิสูจน์คุณค่าด้านอื่นด้วย เช่น การอธิบายผล (Explainability) และการใช้ข้ามระบบ (Generalization)</p>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 17 ─ Next steps -->
+<section class="slide roomy">
+  <div class="head"><p class="eyebrow">9 · งานถัดไป</p><h2>แผนงานส่วนที่เหลือ</h2></div>
+  <div class="steps">
+    <div class="s now"><span class="k">1</span><div><h3>Transformer Encoder</h3><p>Multi-Head Self-Attention จับความสัมพันธ์ระยะไกล + Attention Heatmap อธิบายว่า Event ใดทำให้ถูกตัดสินว่าผิดปกติ</p></div></div>
+    <div class="s"><span class="k">2</span><div><h3>ปรับปรุง DeepLog</h3><p>ฝึกด้วย Normal Session ทั้งหมดบน GPU และจูน Hyperparameter</p></div></div>
+    <div class="s"><span class="k">3</span><div><h3>เปรียบเทียบทุกโมเดล + ทดสอบข้ามระบบบน BGL</h3><p>ทดสอบ Generalization กับ Log ซูเปอร์คอมพิวเตอร์ BGL (4.75 ล้านบรรทัด)</p></div></div>
+    <div class="s"><span class="k">4</span><div><h3>Web Application Prototype (Streamlit)</h3><p>อัปโหลด Log, วิเคราะห์ราย Session และไฮไลต์ Event ที่น่าสงสัยให้ SOC Analyst</p></div></div>
+    <div class="s"><span class="k">5</span><div><h3>รายงานฉบับสมบูรณ์และการนำเสนอ</h3></div></div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 18 ─ Delivered -->
+<section class="slide alt roomy">
+  <div class="head"><p class="eyebrow">สิ่งที่ส่งมอบแล้ว</p><h2>Delivered Artifacts</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>📓 Notebooks</h3>
+      <ul class="small">
+        <li><code>01_eda.ipynb</code> — EDA & Data Insights</li>
+        <li><code>02_log_parsing.ipynb</code> — Drain3 & Data Splits</li>
+        <li><code>03_baseline_models.ipynb</code> — LR & Isolation Forest</li>
+        <li><code>04_lstm_deeplog.ipynb</code> — Supervised Session LSTM</li>
+        <li><code>04b_deeplog_next_event.ipynb</code> — DeepLog Next-Event</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3>💾 Datasets & Checkpoints</h3>
+        <ul class="small">
+          <li><code>data/processed/HDFS/{train,val,test}.csv</code> (51 MB)</li>
+          <li><code>drain3_hdfs.bin</code>, <code>lstm_deeplog_hdfs.pt</code>, <code>deeplog_next_event_hdfs.pt</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📊 Metrics, Figures & AI Assistant</h3>
+        <ul class="small">
+          <li>JSON ใน <code>results/metrics/</code> · กราฟใน <code>results/figures/</code></li>
+          <li><code>GEMINI.md</code>, <code>CLAUDE.md</code>, <code>.claude/skills/logsentinel/</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>LogSentinel · Progress Presentation</span><span class="pg"></span></div>
+</section>
+
+<!-- 19 ─ Q&A -->
+<section class="slide dark" style="justify-content:center;gap:18px">
+  <p class="eyebrow">LogSentinel · CS461 Deep Learning</p>
+  <h1>Q &amp; A</h1>
+  <p style="font-size:26px">ขอขอบคุณคณะกรรมการและอาจารย์ทุกท่าน</p>
+  <p style="font-size:20px;color:#8FA3BF">ทีม LogSentinel พร้อมตอบทุกข้อซักถาม</p>
+</section>
+
+</div>
+<div id="progress"></div>
+<div id="hint">← → เปลี่ยนสไลด์ · F เต็มจอ · Ctrl+P บันทึกเป็น PDF</div>
+
+<script>
+  /** Simple keyboard/click slide navigator with window-fit scaling. */
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const stage = document.getElementById('stage');
+  const bar = document.getElementById('progress');
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+
+  slides.forEach((s, n) => { const pg = s.querySelector('.pg'); if (pg) pg.textContent = `${n + 1} / ${slides.length}`; });
+
+  function fit() {
+    const k = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = `translate(-50%, -50%) scale(${k})`;
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, j) => s.classList.toggle('active', j === i));
+    bar.style.width = `${((i + 1) / slides.length) * 100}%`;
+    history.replaceState(null, '', `#${i + 1}`);
+  }
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  });
+  document.addEventListener('click', e => { if (e.clientX > window.innerWidth / 2) show(i + 1); else show(i - 1); });
+  window.addEventListener('resize', fit);
+  fit(); show(i);
+  setTimeout(() => { document.getElementById('hint').style.opacity = 0; }, 4000);
+</script>
+</body>
+</html>
