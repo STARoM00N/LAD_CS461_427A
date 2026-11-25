@@ -1,0 +1,35 @@
+{
+    "model": "DeepLog_NextEvent_EOS_ProbThreshold",
+    "dataset": "HDFS",
+    "training_paradigm": "Unsupervised/Semi-supervised (Normal sessions only)",
+    "window_size": 10,
+    "use_eos": true,
+    "detection": "probability_threshold",
+    "best_tau": 0.0001880808378997699,
+    "best_k": 5,
+    "f1_score": 0.9278,
+    "precision": 0.9594,
+    "recall": 0.8983,
+    "pr_auc": 0.9842,
+    "confusion_matrix": [
+        [
+            83638,
+            96
+        ],
+        [
+            257,
+            2269
+        ]
+    ],
+    "hyperparameters": {
+        "embedding_dim": 32,
+        "hidden_dim": 64,
+        "num_layers": 2,
+        "dropout": 0.2,
+        "learning_rate": 0.001,
+        "batch_size": 512,
+        "epochs": 5,
+        "train_sessions_used": 390755
+    },
+    "timestamp": "2026-11-21 03:12:38"
+}
