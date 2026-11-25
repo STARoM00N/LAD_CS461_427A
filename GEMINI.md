@@ -50,8 +50,8 @@ tests/          (empty)
 | 2 | Drain3 parsing (45 templates, 100% match with Loghub) — `02_log_parsing.ipynb` | ✅ Done |
 | 3 | Baselines: Logistic Regression, Isolation Forest — `03_baseline_models.ipynb` | ✅ Done |
 | 4 | Supervised LSTM — `04_lstm_deeplog.ipynb`; Pure DeepLog — `04b_deeplog_next_event.ipynb` | ✅ Done |
-| 5 | Transformer Encoder — `05_transformer.ipynb`; DeepLog fixes in `04b`; attention heatmaps (Part 3) | 🟡 Models done, heatmap pending |
-| 6 | Model comparison + BGL cross-dataset — `06_comparison.ipynb` | ⬜ Todo |
+| 5 | Transformer Encoder + attention explainability — `05_transformer.ipynb`; DeepLog fixes in `04b` | ✅ Done |
+| 6 | Model comparison + BGL cross-dataset — `06_comparison.ipynb` | ⏳ **Next** |
 | 7 | Streamlit app — `app/app.py` | ⬜ Todo |
 | 8 | Final report, presentation, demo | ⬜ Todo |
 
@@ -76,6 +76,10 @@ Notes:
   (2) top-k ranks beyond the 2–3 plausible events are near-random after longer training, so recall fell as k grew.
   Ablation on CPU (25k sessions × 5 epochs, test F1): baseline 68.69%, +prob 81.68%, +EOS 83.87%, both 91.34%.
   A100 run (EOS+prob, all 390,755 normal sessions): F1 92.78%, 96 false alarms / 257 missed. Checkpoint re-verified locally.
+- Explainability (05 Part 3): last-layer [CLS] attention, heads averaged; `explain_session()` / `alert_explanation()` give the top events with Drain3 template text.
+  Event IDs E1–E45 come from Drain3 (`checkpoints/drain3_hdfs.bin`), NOT Loghub's `HDFS.log_templates.csv` (29 templates, different numbering).
+  Highest attention lift in anomalies: E34 (15.6×), E21 (14.6×), E33 (7.4×), E18, E16 — block errors/inconsistencies. E34/E33 also get high attention in normal sessions, so attention is a pointer for analysts, not proof.
+  Figures 11–13: attention examples (TP/FN/FP/TN), lift by event type, per-head maps.
 - Data integrity: an earlier Colab run read a partially uploaded train.csv (212,278 normals). Resolved; `04b` and `05` now
   stop with an error unless train/val/test have 402,542 / 86,259 / 86,260 rows. Local md5 of train.csv: f8aa54339c4ee65b2c4e8b1a4e3ffd94.
 - Supervised LSTM threshold = 0.95 (chosen on validation F1), anomaly class weight ≈ 33.15.
